@@ -36,7 +36,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const TA='2026/2027',KLS=[1,2,3,4,5,6].map(n=>'Kelas '+n),HARI=['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'],ST=['Hadir','Sakit','Izin','Alpa'];
 const BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const MENU=[['home','🏠','Beranda'],['bio','👤','Biodata Guru'],['nilai','📖','Nilai-Nilai Dasar'],['siswa','🎓','Data Diri Siswa',1],['ortu','👪','Data Orang Tua',1],['jadwal','🗓️','Jadwal Pelajaran'],['piket','🧹','Jadwal Piket'],['absen','✅','Daftar Hadir'],['rekap','📊','Rekap Absen'],['proyek','📁','Proyek Saya'],['kop','🏛️','Kop & Tanda Tangan'],['bak','💾','Cadangan Data'],['user','🔑','Kelola Akun',1],['akun','⚙️','Pengaturan Akun']];
+const MENU=[['home','🏠','Beranda'],['bio','👤','Biodata Guru'],['nilai','📖','Nilai-Nilai Dasar'],['siswa','🎓','Data Diri Siswa'],['ortu','👪','Data Orang Tua'],['jadwal','🗓️','Jadwal Pelajaran'],['piket','🧹','Jadwal Piket'],['absen','✅','Daftar Hadir'],['rekap','📊','Rekap Absen'],['proyek','📁','Proyek Saya'],['kop','🏛️','Kop & Tanda Tangan'],['bak','💾','Cadangan Data'],['user','🔑','Kelola Akun',1],['akun','⚙️','Pengaturan Akun']];
 const DEFS={
 siswa:{t:'Data Diri Siswa',req:'nama',f:[['ta','Tahun Ajaran','ta'],['kelas','Kelas','kelas'],['nisn','NISN'],['nama','Nama Siswa'],['jk','Jenis Kelamin','sel',['Laki-laki','Perempuan']],['ttl','Tempat, Tanggal Lahir']]},
 ortu:{t:'Data Orang Tua Siswa',req:'nama',f:[['ta','Tahun Ajaran','ta'],['kelas','Kelas','kelas'],['nama','Nama Siswa','sis'],['ayah','Nama Ayah'],['ibu','Nama Ibu'],['hp','Kontak HP'],['alamat','Alamat']]},
