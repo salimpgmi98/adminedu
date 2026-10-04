@@ -48,11 +48,12 @@ const NILAI=[['Pancasila','1. Ketuhanan Yang Maha Esa.\n2. Kemanusiaan yang adil
 ['Ikrar Guru','Kami guru madrasah berikrar:\nSetia mengabdi kepada agama, bangsa, dan negara.\nMendidik dengan ikhlas, sabar, dan penuh kasih sayang.\nMenjunjung tinggi martabat profesi guru.\nMengutamakan kepentingan peserta didik di atas kepentingan pribadi.'],
 ['Tata Tertib Guru','Hadir 15 menit sebelum jam pelajaran pertama dimulai.\nBerpakaian rapi, sopan, dan sesuai ketentuan madrasah.\nMengisi jurnal mengajar dan daftar hadir siswa setiap hari.\nMemberi tahu madrasah lebih dulu jika berhalangan hadir.\nMenjaga kebersihan, ketertiban, dan sarana madrasah.']];
 let db,me=null,page='home',tab='admin',ed={},ab={ta:TA,kelas:KLS[0],tgl:new Date().toLocaleDateString('sv')},rk={ta:TA,kelas:KLS[0],sem:'Ganjil'};
-const SEED={users:[{u:'admin',p:'admin123',nama:'Administrator',role:'admin',status:'aktif'},{u:'guru',p:'guru123',nama:'Ustadz Ahmad',role:'guru',status:'aktif'}],
+const SEED={users:[{u:'admin',p:'ee7bca5f63d914028a499b59cd262dcaf3bbd2cdb8ce943558ac0639b8face9b',h:1,nama:'Administrator',role:'admin',status:'aktif'},{u:'guru',p:'4ed561ec72234bb89c88ece04e5f2b839c27e49d1d9b395c14ef8ec8249fb9b5',h:1,nama:'Ustadz Ahmad',role:'guru',status:'aktif'}],
 siswa:[['1234567001','Aisyah Nur Hidayah','Perempuan','Makassar, 12 Mei 2019'],['1234567002','Muhammad Faris','Laki-laki','Gowa, 3 Februari 2019'],['1234567003','Siti Khadijah','Perempuan','Maros, 21 Agustus 2019'],['1234567004','Umar Abdullah','Laki-laki','Makassar, 9 Januari 2019']].map(a=>({ta:TA,kelas:'Kelas 1',nisn:a[0],nama:a[1],jk:a[2],ttl:a[3]})),
 ortu:[],jadwal:[],piket:[],absen:{},guru:{},info:['Pembagian jadwal semester ganjil sudah tersedia di menu Jadwal Pelajaran.','Guru wajib mengisi daftar hadir siswa sebelum jam kedua.']};
 function load(){try{db=JSON.parse(localStorage.getItem('adminedu'))}catch(e){db=null}if(!db)db=JSON.parse(JSON.stringify(SEED));db.proyek=db.proyek||[];db.set=Object.assign({kode:true},db.set||{});db.kop=Object.assign({kem:'KEMENTERIAN AGAMA REPUBLIK INDONESIA',nama:'NAMA MADRASAH',alamat:'Alamat madrasah',kontak:'Telepon / email',kota:'Makassar',kepala:'',nipk:'',wali:'',nipw:'',logo:'',mode:'manual',img:''},db.kop||{})}
-function save(){try{localStorage.setItem('adminedu',JSON.stringify(db))}catch(e){}}
+function local(){try{localStorage.setItem('adminedu',JSON.stringify(db))}catch(e){}}
+function save(){local();fbQueue()}
 function toast(m){const t=$('#toast');t.textContent=m;t.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.opacity=0,m.length>50?5000:2200)}
 function setMsg(t,ok){const m=$('#msg');m.className='text-sm mt-3 '+(ok?'text-emerald-700':'text-red-600');m.innerHTML=t}
 const sel=(k,a,v)=>`<select id="f_${k}" class="inp">${a.map(x=>`<option ${x==v?'selected':''}>${esc(x)}</option>`).join('')}</select>`;
@@ -72,17 +73,17 @@ const T=[['admin','Admin'],['guru','Guru'],['daftar','Daftar'],['verif','Verifik
 let body='';
 if(tab=='admin'||tab=='guru')body=`<label class="block text-sm font-medium">Nama pengguna<input id="lu" class="inp" autocomplete="username"></label><label class="block text-sm font-medium mt-3">Kata sandi<input id="lp" type="password" class="inp" autocomplete="current-password"></label><button class="btn w-full mt-4" onclick="doLogin('${tab}')">Masuk sebagai ${tab=='admin'?'Admin':'Guru'}</button>`;
 else if(tab=='daftar')body=`<div class="space-y-3"><label class="block text-sm font-medium">Nama lengkap<input id="rn" class="inp"></label><label class="block text-sm font-medium">Nama pengguna<input id="ru" class="inp"></label><label class="block text-sm font-medium">Kata sandi (min. 6 karakter)<input id="rp" type="password" class="inp"></label><p class="text-xs text-gray-500">Pendaftaran baru berlaku sebagai akun Guru. Akun admin hanya dibuat oleh admin.</p></div><button class="btn w-full mt-4" onclick="doReg()">Daftar akun</button>`;
-else body=`<p class="text-sm text-gray-600 mb-3">Masukkan kode dari pendaftaran untuk mengaktifkan akun. Kosongkan kode untuk mengecek status saja.</p><label class="block text-sm font-medium">Nama pengguna<input id="vu" class="inp"></label><label class="block text-sm font-medium mt-3">Kode verifikasi<input id="vk" class="inp" inputmode="numeric"></label><button class="btn w-full mt-4" onclick="doVer()">Verifikasi akun</button>`;
-$('#app').innerHTML=`<div class="pat min-h-screen flex items-center justify-center p-4"><div class="card w-full max-w-md p-6 pg" style="border-top:4px solid var(--gold)"><div class="text-center mb-5"><div class="mx-auto w-14 h-14 rounded-full grid place-items-center text-2xl" style="background:var(--g);box-shadow:0 0 0 3px #fff,0 0 0 5px var(--gold)">🕌</div><h1 class="text-3xl mt-3" style="color:var(--gd)">AdminEdu</h1><p class="text-sm text-gray-600">Administrasi pendidikan madrasah</p></div><div class="grid grid-cols-4 gap-1 bg-emerald-50 p-1 rounded-lg mb-4 text-sm">${T.map(([k,l])=>`<button onclick="tab='${k}';authView()" class="py-1.5 rounded-md font-semibold transition ${tab==k?'bg-white shadow text-emerald-800':'text-emerald-700'}">${l}</button>`).join('')}</div>${body}<p id="msg" class="text-sm mt-3"></p></div></div>`}
-function doLogin(r){const u=$('#lu').value.trim(),p=$('#lp').value,x=db.users.find(a=>a.u==u&&a.p==p&&a.role==r);
+else if(tab=='fb')body=FBFORM();else body=`<p class="text-sm text-gray-600 mb-3">Masukkan kode dari pendaftaran untuk mengaktifkan akun. Kosongkan kode untuk mengecek status saja.</p><label class="block text-sm font-medium">Nama pengguna<input id="vu" class="inp"></label><label class="block text-sm font-medium mt-3">Kode verifikasi<input id="vk" class="inp" inputmode="numeric"></label><button class="btn w-full mt-4" onclick="doVer()">Verifikasi akun</button>`;
+$('#app').innerHTML=`<div class="pat min-h-screen flex items-center justify-center p-4"><div class="card w-full max-w-md p-6 pg" style="border-top:4px solid var(--gold)"><div class="text-center mb-5"><div class="mx-auto w-14 h-14 rounded-full grid place-items-center text-2xl" style="background:var(--g);box-shadow:0 0 0 3px #fff,0 0 0 5px var(--gold)">🕌</div><h1 class="text-3xl mt-3" style="color:var(--gd)">AdminEdu</h1><p class="text-sm text-gray-600">Administrasi pendidikan madrasah</p></div><div class="grid grid-cols-4 gap-1 bg-emerald-50 p-1 rounded-lg mb-4 text-sm">${T.map(([k,l])=>`<button onclick="tab='${k}';authView()" class="py-1.5 rounded-md font-semibold transition ${tab==k?'bg-white shadow text-emerald-800':'text-emerald-700'}">${l}</button>`).join('')}</div>${body}<p id="msg" class="text-sm mt-3"></p><button class="text-xs text-emerald-700 mt-3 underline" onclick="tab='fb';authView()">Sambungkan server Firebase</button></div></div>`}
+async function doLogin(r){const u=$('#lu').value.trim(),p=$('#lp').value,ph=await H(u,p),x=db.users.find(a=>a.u==u&&a.role==r&&(a.h?a.p==ph:a.p==p));
 if(!x)return setMsg('Nama pengguna, kata sandi, atau jenis akun tidak cocok.');
 if(x.status!='aktif')return setMsg('Akun masih menunggu verifikasi. Buka tab Verifikasi dan masukkan kode Anda.');
-me=x;pj=null;et=null;shell();go('home')}
-function doReg(){const n=$('#rn').value.trim(),u=$('#ru').value.trim(),p=$('#rp').value;
+if(!x.h){x.p=ph;x.h=1;save()}me=x;pj=null;et=null;shell();go('home')}
+async function doReg(){const n=$('#rn').value.trim(),u=$('#ru').value.trim(),p=$('#rp').value;
 if(!n||!u||p.length<6)return setMsg('Lengkapi nama, nama pengguna, dan kata sandi minimal 6 karakter.');
 if(db.users.some(a=>a.u==u))return setMsg('Nama pengguna sudah dipakai. Pilih nama lain.');
 const k=String(100000+Math.floor(Math.random()*900000));
-db.users.push({u,p,nama:n,role:'guru',status:'pending',k:db.set.kode?k:''});save();
+db.users.push({u,p:await H(u,p),h:1,nama:n,role:'guru',status:'pending',k:db.set.kode?k:''});save();
 setMsg(db.set.kode?`Pendaftaran berhasil. Kode verifikasi Anda: <b>${k}</b>. Masukkan di tab Verifikasi untuk mengaktifkan akun.`:'Pendaftaran berhasil. Akun akan diaktifkan oleh admin. Cek statusnya di tab Verifikasi.',1)}
 function doVer(){const u=$('#vu').value.trim(),k=$('#vk').value.trim(),x=db.users.find(a=>a.u==u);
 if(!x)return setMsg('Nama pengguna tidak ditemukan.');
@@ -93,8 +94,8 @@ x.status='aktif';save();setMsg('Akun berhasil diaktifkan. Silakan masuk.',1)}
 
 /* ---------- SHELL ---------- */
 function shell(){const M=MENU.filter(m=>!m[3]||me.role=='admin');
-$('#app').innerHTML=`<div class="md:flex min-h-screen"><aside id="sb" class="fixed md:sticky top-0 z-30 h-screen w-64 shrink-0 overflow-y-auto text-white transition-transform -translate-x-full md:translate-x-0" style="background:var(--gd)"><div class="p-4 flex items-center gap-2 border-b border-white/10"><span class="text-2xl">🕌</span><b class="ser text-xl" style="color:#f3d97a">AdminEdu</b></div><nav class="p-2 space-y-1">${M.map(m=>`<button id="m_${m[0]}" onclick="go('${m[0]}')" class="nv w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition">${m[1]} ${m[2]}</button>`).join('')}</nav></aside><div class="flex-1 min-w-0"><header class="np bg-white border-b px-4 py-3 flex items-center gap-3"><button class="md:hidden text-2xl" aria-label="Menu" onclick="$('#sb').classList.toggle('-translate-x-full')">☰</button><div class="ml-auto text-sm text-right"><b>${esc(me.nama)}</b><div class="text-gray-500">${me.role=='admin'?'Admin':'Guru'}</div></div><button class="btn2" onclick="me=null;authView()">Keluar</button></header><main id="main" class="p-4 md:p-6 max-w-6xl"></main></div></div>`}
-function go(p){page=p;$('#sb').classList.add('-translate-x-full');document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.id=='m_'+p));
+$('#app').innerHTML=`<div class="md:flex min-h-screen"><aside id="sb" class="fixed md:sticky top-0 z-30 h-screen w-64 shrink-0 overflow-y-auto text-white transition-transform -translate-x-full md:translate-x-0" style="background:var(--gd)"><div class="p-4 flex items-center gap-2 border-b border-white/10"><span class="text-2xl">🕌</span><b class="ser text-xl" style="color:#f3d97a">AdminEdu</b></div><nav class="p-2 space-y-1">${M.map(m=>`<button id="m_${m[0]}" onclick="go('${m[0]}')" class="nv w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 transition">${m[1]} ${m[2]}</button>`).join('')}</nav></aside><div class="flex-1 min-w-0"><header class="np bg-white border-b px-4 py-3 flex items-center gap-3"><button class="md:hidden text-2xl" aria-label="Menu" onclick="$('#sb').classList.toggle('-translate-x-full')">☰</button><button id="fbs" class="ml-auto text-xs np" onclick="fbPull(true)" title="Klik untuk sinkron sekarang"></button><div class="text-sm text-right"><b>${esc(me.nama)}</b><div class="text-gray-500">${me.role=='admin'?'Admin':'Guru'}</div></div><button class="btn2" onclick="me=null;authView()">Keluar</button></header><main id="main" class="p-4 md:p-6 max-w-6xl"></main></div></div>`}
+function go(p){page=p;fbStatus(fbSt);$('#sb').classList.add('-translate-x-full');document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.id=='m_'+p));
 $('#main').innerHTML='<div class="pg">'+(V[p]?V[p]():crud(p))+'</div>'}
 
 /* ---------- CRUD ---------- */
@@ -241,6 +242,35 @@ if(!o||o.app!='AdminEdu'||!o.data||typeof o.data!='object')return toast('Teks at
 if(!confirm('Ganti data saat ini dengan isi cadangan ini?'))return;
 if(me.role!='admin'||!Array.isArray(o.data.users)||!o.data.users.some(u=>u.role=='admin')){o.data.users=db.users;o.data.set=db.set}
 db=o.data;save();load();me=db.users.find(u=>u.u==me.u&&u.status=='aktif');if(!me){authView();return}pj=null;et=null;shell();go('bak');toast('Data berhasil dipulihkan')}
-function changePw(){const o=val('po'),a=val('pn1'),b=val('pn2');if(o!=me.p)return toast('Kata sandi saat ini salah.');if(a.length<6)return toast('Kata sandi baru minimal 6 karakter.');if(a!=b)return toast('Ulangi kata sandi baru dengan sama persis.');me.p=a;save();toast('Kata sandi diganti');go('akun')}
-load();authView();
+async function changePw(){const o=val('po'),a=val('pn1'),b=val('pn2');if((me.h?await H(me.u,o):o)!=me.p)return toast('Kata sandi saat ini salah.');if(a.length<6)return toast('Kata sandi baru minimal 6 karakter.');if(a!=b)return toast('Ulangi kata sandi baru dengan sama persis.');me.p=await H(me.u,a);me.h=1;save();toast('Kata sandi diganti');go('akun')}
+/* ---------- FIREBASE (Firestore REST) ---------- */
+const FBC={apiKey:'',projectId:''};
+const H=async(u,p)=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('adminedu:'+u+':'+p)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const fbCfg=()=>{try{const c=JSON.parse(localStorage.getItem('adminedu_fb'));if(c&&c.apiKey&&c.projectId)return c}catch(e){}return FBC.apiKey&&FBC.projectId?FBC:null};
+const fbOn=()=>!!fbCfg();
+let fbT='',fbTimer=null,fbBusy=false,fbKop='',fbSt='off';
+const fbURL=(d,q='')=>{const c=fbCfg();return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(c.projectId)}/databases/(default)/documents/adminedu/${d}?key=${encodeURIComponent(c.apiKey)}${q}`};
+function fbStatus(x){fbSt=x;const e=$('#fbs');if(e)e.textContent={off:'Data hanya di perangkat ini',ok:'Tersinkron ke server',sync:'Menyimpan ke server…',err:'Server tidak terhubung'}[x]||''}
+async function fbGet(d){const r=await fetch(fbURL(d));if(r.status==404)return null;if(!r.ok)throw new Error(r.status);const j=await r.json();return{t:j.updateTime,v:JSON.parse(j.fields.json.stringValue)}}
+async function fbPut(d,v,t){const r=await fetch(fbURL(d,'&updateMask.fieldPaths=json'+(t?'&currentDocument.updateTime='+encodeURIComponent(t):'')),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields:{json:{stringValue:JSON.stringify(v)}}})});
+if(t&&[400,409,412].includes(r.status)){const e=new Error('konflik');e.conflict=1;throw e}if(!r.ok)throw new Error(r.status);return(await r.json()).updateTime}
+function fbQueue(){if(!fbOn())return;clearTimeout(fbTimer);fbTimer=setTimeout(()=>{fbTimer=null;if(fbBusy)fbQueue();else fbPushNow()},1200)}
+async function fbPushNow(){fbBusy=true;fbStatus('sync');const{kop,...rest}=db;
+try{const k=JSON.stringify(kop);if(k!=fbKop){await fbPut('kop',kop);fbKop=k}fbT=await fbPut('main',rest,fbT);fbStatus('ok');fbBusy=false}
+catch(e){fbBusy=false;if(e.conflict){toast('Ada perubahan baru dari perangkat lain. Data dimuat ulang; ulangi perubahan terakhir Anda.');fbT='';await fbPull(true,1)}else fbStatus('err')}}
+async function fbPull(silent,force){if(!fbOn()||fbBusy||(fbTimer&&!force))return;fbBusy=true;
+try{const[m,k]=await Promise.all([fbGet('main'),fbGet('kop')]);
+if(!m){fbBusy=false;return fbPushNow()}
+if(m.t!=fbT){const kop=k?k.v:db.kop;db=m.v;db.kop=kop;fbT=m.t;fbKop=JSON.stringify(kop);local();load();
+if(me){me=db.users.find(u=>u.u==me.u&&u.status=='aktif');if(!me){fbBusy=false;authView();return}}
+if(silent&&me&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||''))go(page)}
+fbStatus('ok')}catch(e){fbStatus('err')}fbBusy=false}
+const FBFORM=()=>{const c=fbCfg()||{};return `<p class="text-sm text-gray-600 mb-3">Isi konfigurasi proyek Firebase (Firestore) agar data tersimpan di server dan terbaca dari perangkat mana pun. Bagian ini hanya bekerja jika aplikasi dibuka dari hosting Anda sendiri.</p><label class="block text-sm font-medium">API key<input id="fb_k" class="inp" value="${esc(c.apiKey)}" autocomplete="off"></label><label class="block text-sm font-medium mt-3">Project ID<input id="fb_p" class="inp" value="${esc(c.projectId)}" autocomplete="off"></label><div class="flex gap-2 mt-4"><button class="btn flex-1" onclick="fbSave()">Simpan dan sambungkan</button>${c.apiKey?'<button class="btn2" onclick="fbOff()">Putuskan</button>':''}</div><button class="text-xs underline mt-3" onclick="tab='admin';authView()">Kembali ke halaman masuk</button>`};
+async function fbSave(){const k=$('#fb_k').value.trim(),p=$('#fb_p').value.trim();if(!k||!p)return setMsg('Isi API key dan Project ID.');
+if(!confirm('Jika server sudah berisi data, data di server akan menggantikan data di perangkat ini. Lanjutkan?'))return;
+try{localStorage.setItem('adminedu_fb',JSON.stringify({apiKey:k,projectId:p}))}catch(e){}
+setMsg('Menghubungkan…',1);fbT='';fbBusy=false;await fbPull();
+if(fbSt=='ok')setMsg('Terhubung. Data kini tersimpan di Firebase.',1);else setMsg('Gagal terhubung. Periksa API key, Project ID, aturan Firestore, dan pastikan aplikasi dibuka dari hosting Anda sendiri.')}
+function fbOff(){try{localStorage.removeItem('adminedu_fb')}catch(e){}fbStatus('off');authView();toast('Firebase diputus. Data tetap ada di perangkat ini.')}
+(async()=>{load();if(fbOn()){$('#app').innerHTML='<div class="min-h-screen grid place-items-center text-emerald-800">Memuat data dari server…</div>';await fbPull()}else fbStatus('off');authView();setInterval(()=>{if(me)fbPull(true)},25000)})();
 </script></body></html>
